@@ -12,8 +12,13 @@ $couponController = new CouponController();
 switch ($uri) {
     case '/train_php_api/coupons':
         if ($method == HttpMethods::GET) {
-            // $couponController->getAllCoupons();
-            $couponController->getCouponById(1);
+            $couponController->getAllCoupons();
+        } elseif ($method == HttpMethods::POST) {
+            $data = RequestHandler::getPostData(); 
+            $productId = isset($data['productId']) ? $data['productId'] : null;
+            $storeId = isset($data['storeId']) ? $data['storeId'] : null;
+            $userId = isset($data['userId']) ? $data['userId'] : null;
+            $couponController->filterCoupon($productId, $storeId,$userId);
         }
         break;
 
