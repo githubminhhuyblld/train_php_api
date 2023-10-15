@@ -48,7 +48,7 @@ class CouponController
         $couponModel = new CouponModel();
         $store = $storeModel->getStoreById($storeId);
         if (!$store) {
-            ResponseHandler::jsonResponseNotFound( 'storeId not found', 404);
+            ResponseHandler::jsonResponseNotFound('storeId not found', 404);
             return;
         }
 
@@ -99,7 +99,24 @@ class CouponController
         ResponseHandler::jsonResponse($response);
     }
 
-    public function filterCoupon($productId = null, $storeId = null, $userId = null)
+    private function getCouponsByProductIds($productIds) {
+        $couponModel = new CouponModel();
+        $coupons = $couponModel->getCouponsByProductIds($productIds);
+        $productModel = new ProductModel();
+    
+        $response = [];
+    
+        foreach ($coupons as $coupon) {
+            $products = $productModel->getProductsByCouponId($coupon['id']);
+            $coupon['products'] = $products;
+            $response[] = $coupon;
+        }
+    
+        ResponseHandler::jsonResponse($response);
+    }
+    
+
+    public function filterCoupon($productId = null, $storeId = null, $userId = null, $productIds = null)
     {
         if ($productId) {
             $this->getCouponsByProductId($productId);
@@ -107,6 +124,8 @@ class CouponController
             $this->getCouponsByStoreId($storeId);
         } elseif ($userId) {
             $this->getCouponsByUserId($userId);
+        } elseif ($productIds) {
+            $this->getCouponsByProductIds($productIds);
         } else {
             ResponseHandler::jsonResponse(null, 'Invalid filters', 400);
         }

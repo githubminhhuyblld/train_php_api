@@ -16,9 +16,10 @@ switch ($uri) {
         } elseif ($method == HttpMethods::POST) {
             $data = RequestHandler::getPostData(); 
             $productId = isset($data['productId']) ? $data['productId'] : null;
+            $productIds = isset($data['productIds']) ? $data['productIds'] : null;
             $storeId = isset($data['storeId']) ? $data['storeId'] : null;
             $userId = isset($data['userId']) ? $data['userId'] : null;
-            $couponController->filterCoupon($productId, $storeId,$userId);
+            $couponController->filterCoupon($productId, $storeId,$userId,$productIds);
         }
         break;
 
