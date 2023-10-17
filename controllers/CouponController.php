@@ -42,7 +42,7 @@ class CouponController
         }
     }
 
-    private function getCouponsByStoreId($storeId)
+    public function getCouponsByStoreId($storeId)
     {
         $storeModel = new StoreModel();
         $couponModel = new CouponModel();
@@ -53,16 +53,16 @@ class CouponController
         }
 
         $coupons = $couponModel->getCouponsByStoreId($storeId);
-        $storeModel = new StoreModel();
-        $response = [];
+        // $storeModel = new StoreModel();
+        // $response = [];
 
-        foreach ($coupons as $coupon) {
-            $stores = $storeModel->getStoresByCouponId($coupon['id']);
-            $coupon['stores'] = $stores;
-            $response[] = $coupon;
-        }
+        // foreach ($coupons as $coupon) {
+        //     $stores = $storeModel->getStoresByCouponId($coupon['id']);
+        //     $coupon['stores'] = $stores;
+        //     $response[] = $coupon;
+        // }
 
-        ResponseHandler::jsonResponse($response);
+        ResponseHandler::jsonResponse($coupons);
     }
 
     private function getCouponsByUserId($userId)
@@ -99,24 +99,25 @@ class CouponController
         ResponseHandler::jsonResponse($response);
     }
 
-    private function getCouponsByProductIds($productIds) {
+    private function getCouponsByProductIds($productIds)
+    {
         $couponModel = new CouponModel();
         $coupons = $couponModel->getCouponsByProductIds($productIds);
         $productModel = new ProductModel();
-    
+
         $response = [];
-    
+
         foreach ($coupons as $coupon) {
             $products = $productModel->getProductsByCouponId($coupon['id']);
             $coupon['products'] = $products;
             $response[] = $coupon;
         }
-    
+
         ResponseHandler::jsonResponse($response);
     }
-    
 
-    public function filterCoupon($productId = null, $storeId = null, $userId = null, $productIds = null)
+
+    public function filterCoupon($productId = null, $storeId = null, $userId = null)
     {
         if ($productId) {
             $this->getCouponsByProductId($productId);
@@ -124,13 +125,44 @@ class CouponController
             $this->getCouponsByStoreId($storeId);
         } elseif ($userId) {
             $this->getCouponsByUserId($userId);
-        } elseif ($productIds) {
-            $this->getCouponsByProductIds($productIds);
         } else {
             ResponseHandler::jsonResponse(null, 'Invalid filters', 400);
         }
     }
+
+    public function filterCouponAnd($userId = null, $storeId = null, $productId = null)
+    {
+        $couponModel = new CouponModel();
+
+        switch (true) {
+            case $userId && $productId && $storeId:
+                $coupons = $couponModel->getCouponsByUserIdProductIdStoreId($userId, $productId, $storeId);
+                break;
+
+            case $userId && $productId:
+                $coupons = $couponModel->getCouponsByUserIdAndProductId($userId, $productId);
+                break;
+
+            case $userId:
+                $coupons = $couponModel->getCouponsByUserId($userId);
+                break;
+
+            case $storeId:
+                $coupons = $couponModel->getCouponsByStoreId($storeId);
+                break;
+
+            case $productId:
+                $coupons = $couponModel->getCouponsByProductId($productId);
+                break;
+
+            default:
+                $coupons = null;
+                break;
+        }
+
+        ResponseHandler::jsonResponse($coupons);
+    }
 }
 // $couponController = new CouponController();
-// $allCoupons = $couponController->getCouponsByProductIdOrStoreId(1, null);
+// $allCoupons = $couponController->filterCouponAnd(1, 1, 1);
 // print_r($allCoupons);

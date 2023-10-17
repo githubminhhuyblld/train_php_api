@@ -1,29 +1,28 @@
 <?php
-require_once '../response/ResponseHandler.php';
-require_once '../requests/RequestHandler.php';
-require_once '../methods/HttpMethods.php';
-require_once '../controllers/CouponController.php';
 
+class Router {
+    private $routes;
 
-$method = RequestHandler::getRequestMethod();
-$uri = RequestHandler::getRequestUri();
+    public function __construct() {
+        $this->routes = array();
+    }
 
-$couponController = new CouponController();
-switch ($uri) {
-    case '/train_php_api/coupons':
-        if ($method == HttpMethods::GET) {
-            $couponController->getAllCoupons();
-        } elseif ($method == HttpMethods::POST) {
-            $data = RequestHandler::getPostData(); 
-            $productId = isset($data['productId']) ? $data['productId'] : null;
-            $productIds = isset($data['productIds']) ? $data['productIds'] : null;
-            $storeId = isset($data['storeId']) ? $data['storeId'] : null;
-            $userId = isset($data['userId']) ? $data['userId'] : null;
-            $couponController->filterCoupon($productId, $storeId,$userId,$productIds);
+    public function addRoute($method, $uri, $callback) {
+        $this->routes[] = array(
+            'method' => $method,
+            'uri' => $uri,
+            'callback' => $callback
+        );
+    }
+
+    public function dispatch($method, $uri) {
+        foreach ($this->routes as $route) {
+            if ($route['method'] == $method && $route['uri'] == $uri) {
+                call_user_func($route['callback']);
+                return;
+            }
         }
-        break;
 
-    default:
         ResponseHandler::jsonResponse(null, 'URL not found', 404);
-        break;
+    }
 }

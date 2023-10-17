@@ -13,6 +13,54 @@ class CouponModel
         $this->connection = $dbConfig->getConnection();
     }
 
+    public function getCouponsByUserIdProductIdStoreId($userId, $productId, $storeId)
+    {
+        try {
+            $query = "
+                SELECT c.* 
+                FROM coupon c
+                INNER JOIN user_coupon uc ON c.id = uc.coupon_id
+                INNER JOIN product_coupon pc ON c.id = pc.coupon_id
+                INNER JOIN store_coupon sc ON c.id = sc.coupon_id
+                WHERE uc.user_id = :userId AND pc.product_id = :productId AND sc.store_id = :storeId
+            ";
+
+            $stmt = $this->connection->prepare($query);
+            $stmt->bindParam(":userId", $userId, PDO::PARAM_INT);
+            $stmt->bindParam(":productId", $productId, PDO::PARAM_INT);
+            $stmt->bindParam(":storeId", $storeId, PDO::PARAM_INT);
+
+            $stmt->execute();
+
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            die("Error in getCouponsByUserIdProductIdStoreId() " . $e->getMessage());
+        }
+    }
+    public function getCouponsByUserIdAndProductId($userId, $productId) {
+        try {
+            $query = "
+                SELECT c.* 
+                FROM coupon c
+                INNER JOIN user_coupon uc ON c.id = uc.coupon_id
+                INNER JOIN product_coupon pc ON c.id = pc.coupon_id
+                WHERE uc.user_id = :userId AND pc.product_id = :productId
+            ";
+    
+            $stmt = $this->connection->prepare($query);
+            $stmt->bindParam(":userId", $userId, PDO::PARAM_INT);
+            $stmt->bindParam(":productId", $productId, PDO::PARAM_INT);
+    
+            $stmt->execute();
+    
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            die("Error in getCouponsByUserIdAndProductId() " . $e->getMessage());
+        }
+    }
+    
+    
+
     public function getAllCoupons()
     {
         try {

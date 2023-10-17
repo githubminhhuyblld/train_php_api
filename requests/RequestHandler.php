@@ -11,5 +11,8 @@ class RequestHandler {
         $rawData = file_get_contents("php://input");
         return json_decode($rawData, true);
     }
+    public static function getQueryParam($key, $default = null) {
+        return isset($_GET[$key]) ? $_GET[$key] : $default;
+    }
 
 }
