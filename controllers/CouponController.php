@@ -41,27 +41,29 @@ class CouponController
             echo "Controller getCouponById:" . $e->getMessage();
         }
     }
+    private function validateExistence($checks)
+    {
+        foreach ($checks as $table => $id) {
+            if (!$this->couponModel->idExists($id, $table)) {
+                ResponseHandler::jsonResponseNotFound(ucfirst($table) . ' ID ' . $id . ' not found', 404);
+                return false;
+            }
+        }
+        return true;
+    }
 
     public function getCouponsByStoreId($storeId)
     {
-        $storeModel = new StoreModel();
+
+        $checks = array(
+            'store' => $storeId
+
+        );
+
+        $isValid = $this->validateExistence($checks);
         $couponModel = new CouponModel();
-        $store = $storeModel->getStoreById($storeId);
-        if (!$store) {
-            ResponseHandler::jsonResponseNotFound('storeId not found', 404);
-            return;
-        }
 
         $coupons = $couponModel->getCouponsByStoreId($storeId);
-        // $storeModel = new StoreModel();
-        // $response = [];
-
-        // foreach ($coupons as $coupon) {
-        //     $stores = $storeModel->getStoresByCouponId($coupon['id']);
-        //     $coupon['stores'] = $stores;
-        //     $response[] = $coupon;
-        // }
-
         ResponseHandler::jsonResponse($coupons);
     }
 
@@ -71,15 +73,9 @@ class CouponController
         $coupons = $couponModel->getCouponsByUserId($userId);
         $userModel = new UserModel();
 
-        $response = [];
 
-        foreach ($coupons as $coupon) {
-            $users = $userModel->getUsersByCouponId($coupon['id']);
-            $coupon['users'] = $users;
-            $response[] = $coupon;
-        }
 
-        ResponseHandler::jsonResponse($response);
+        ResponseHandler::jsonResponse($coupons);
     }
 
     private function getCouponsByProductId($productId)
@@ -88,32 +84,32 @@ class CouponController
         $coupons = $couponModel->getCouponsByProductId($productId);
         $productModel = new ProductModel();
 
-        $response = [];
 
-        foreach ($coupons as $coupon) {
-            $products = $productModel->getProductsByCouponId($coupon['id']);
-            $coupon['products'] = $products;
-            $response[] = $coupon;
-        }
-
-        ResponseHandler::jsonResponse($response);
+        ResponseHandler::jsonResponse($coupons);
     }
 
     private function getCouponsByProductIds($productIds)
     {
+
         $couponModel = new CouponModel();
         $coupons = $couponModel->getCouponsByProductIds($productIds);
-        $productModel = new ProductModel();
+        ResponseHandler::jsonResponse($coupons);
+    }
 
-        $response = [];
-
-        foreach ($coupons as $coupon) {
-            $products = $productModel->getProductsByCouponId($coupon['id']);
-            $coupon['products'] = $products;
-            $response[] = $coupon;
+    public function getCouponsByStoreIdAndUserIdProductId($userId, $storeId, $productId)
+    {
+        $checks = array(
+            'store' => $storeId,
+            'user' => $userId,
+            'product' => $productId
+        );
+        $couponModel = new CouponModel();
+        $isValid = $this->validateExistence($checks);
+        if (!$isValid) {
+            return;
         }
-
-        ResponseHandler::jsonResponse($response);
+        $coupons = $couponModel->getCouponsByUserIdProductIdStoreId($userId, $productId, $storeId);
+        ResponseHandler::jsonResponse($coupons, null, 200);
     }
 
 
@@ -136,11 +132,11 @@ class CouponController
 
         switch (true) {
             case $userId && $productId && $storeId:
-                $coupons = $couponModel->getCouponsByUserIdProductIdStoreId($userId, $productId, $storeId);
+                $coupons = $this->getCouponsByStoreIdAndUserIdProductId($userId, $storeId, $productId);
                 break;
 
-            case $userId && $productId:
-                $coupons = $couponModel->getCouponsByUserIdAndProductId($userId, $productId);
+            case $userId && $storeId:
+                echo "1";
                 break;
 
             case $userId:
@@ -148,7 +144,7 @@ class CouponController
                 break;
 
             case $storeId:
-                $coupons = $couponModel->getCouponsByStoreId($storeId);
+                $coupons = $this->getCouponsByStoreId($storeId);
                 break;
 
             case $productId:

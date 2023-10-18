@@ -13,6 +13,12 @@ class CouponModel
         $this->connection = $dbConfig->getConnection();
     }
 
+    public function idExists($id, $tableName) {
+        $stmt = $this->connection->prepare("SELECT 1 FROM $tableName WHERE id = ?");
+        $stmt->execute([$id]);
+        return $stmt->fetchColumn();
+    }
+
     public function getCouponsByUserIdProductIdStoreId($userId, $productId, $storeId)
     {
         try {
