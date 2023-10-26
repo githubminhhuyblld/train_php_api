@@ -1,9 +1,11 @@
 <?php
-// require_once '../config/DatabaseConfig.php';
 require_once __DIR__ . '/../config/DatabaseConfig.php';
+require_once __DIR__ . '/../models/Coupon.php';
+require_once __DIR__ . '/../constant/SqlFile.php';
 
 
-class CouponModel
+
+class CouponRepository
 {
     private $connection;
 
@@ -12,8 +14,34 @@ class CouponModel
         $dbConfig = DatabaseConfig::getInstance();
         $this->connection = $dbConfig->getConnection();
     }
+    public function getCouponsByStoreId($storeId)
+    {
+        try {
+            $query = file_get_contents(SQLFiles::GET_COUPONS_BY_STORE_ID);
 
-    public function idExists($id, $tableName) {
+            if (!$query) {
+                die("Error: Unable to read SQL file.");
+            }
+            $stmt = $this->connection->prepare($query);
+            $stmt->bindParam(":storeId", $storeId, PDO::PARAM_INT);
+            $stmt->execute();
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $couponObjects = array_map(['Coupon', 'fromArray'], $rows);
+            $coupons = array_map(function ($couponObject) {
+                return $couponObject->toArray();
+            }, $couponObjects);
+            return $coupons;
+        } catch (PDOException $e) {
+            die("Error in getCouponsByStoreId() " . $e->getMessage());
+        }
+    }
+
+
+
+
+
+    public function idExists($id, $tableName)
+    {
         $stmt = $this->connection->prepare("SELECT 1 FROM $tableName WHERE id = ?");
         $stmt->execute([$id]);
         return $stmt->fetchColumn();
@@ -43,7 +71,8 @@ class CouponModel
             die("Error in getCouponsByUserIdProductIdStoreId() " . $e->getMessage());
         }
     }
-    public function getCouponsByUserIdAndProductId($userId, $productId) {
+    public function getCouponsByUserIdAndProductId($userId, $productId)
+    {
         try {
             $query = "
                 SELECT c.* 
@@ -52,20 +81,20 @@ class CouponModel
                 INNER JOIN product_coupon pc ON c.id = pc.coupon_id
                 WHERE uc.user_id = :userId AND pc.product_id = :productId
             ";
-    
+
             $stmt = $this->connection->prepare($query);
             $stmt->bindParam(":userId", $userId, PDO::PARAM_INT);
             $stmt->bindParam(":productId", $productId, PDO::PARAM_INT);
-    
+
             $stmt->execute();
-    
+
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             die("Error in getCouponsByUserIdAndProductId() " . $e->getMessage());
         }
     }
-    
-    
+
+
 
     public function getAllCoupons()
     {
@@ -90,26 +119,7 @@ class CouponModel
         }
     }
 
-    public function getCouponsByStoreId($storeId)
-    {
-        try {
-            $query = "
-                SELECT c.* 
-                FROM coupon c
-                INNER JOIN store_coupon sc ON c.id = sc.coupon_id
-                WHERE sc.store_id = :storeId
-            ";
 
-            $stmt = $this->connection->prepare($query);
-            $stmt->bindParam(":storeId", $storeId, PDO::PARAM_INT);
-
-            $stmt->execute();
-
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (PDOException $e) {
-            die("Error in getCouponsByStoreId() " . $e->getMessage());
-        }
-    }
 
     public function getCouponsByUserId($userId)
     {
@@ -170,6 +180,6 @@ class CouponModel
     }
 }
 //Test
-// $couponModel = new CouponModel();
-// $coupon = $couponModel->getCouponById(1);
+// $couponModel = new CouponRepository();
+// $coupon = $couponModel->getCouponsByStoreId(1);
 // print_r($coupon);
