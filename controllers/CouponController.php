@@ -19,47 +19,33 @@ class CouponController
 
 
     private function validateExistence($checks)
-    {
-        foreach ($checks as $table => $id) {
-            if (!$this->couponModel->idExists($id, $table)) {
-                ResponseHandler::jsonResponseNotFound(ucfirst($table) . ' ID ' . $id . ' not found', 404);
-                return false;
-            }
+{
+    foreach ($checks as $table => $id) {
+        if ($id !== null && !$this->couponModel->idExists($id, $table)) {
+            ResponseHandler::jsonResponseNotFound(ucfirst($table) . ' ID ' . $id . ' not found', 404);
+            return false;
         }
-        return true;
     }
+    return true;
+}
 
-    public function getCouponsByStoreId($storeId)
+
+    public function getCouponsByUserIdProductIdStoreId($userId,$productId,$storeId)
     {
         $checks = array(
-            TableNames::STORE => $storeId
+            TableNames::STORE => $storeId,
+            TableNames::USER => $userId,
+            TableNames::PRODUCT => $productId
         );
     
         $isValid = $this->validateExistence($checks);
         $couponRepository = new CouponRepository();
     
-        $coupons = $couponRepository->getCouponsByStoreId($storeId);
+        $coupons = $couponRepository->getCouponsByUserIdProductIdStoreId($userId,$productId,$storeId);
         ResponseHandler::jsonResponse($coupons);
     }
     
 
 
-    public function filterCouponAnd($userId = null, $storeId = null, $productId = null)
-    {
-       switch (true) {
-        
-            case $storeId:
-                $coupons = $this->getCouponsByStoreId($storeId);
-                break;
-
-            default:
-                $coupons = null;
-                break;
-        }
-
-        ResponseHandler::jsonResponse($coupons);
-    }
 }
-// $couponController = new CouponController();
-// $allCoupons = $couponController->filterCouponAnd(1, null, null);
-// print_r($allCoupons);
+

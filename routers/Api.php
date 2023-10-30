@@ -18,23 +18,17 @@ function validateQueryParams($params) {
     // Kiểm tra xem mỗi tham số trong $params có hợp lệ hay không
     foreach ($params as $param => $value) {
         if (!in_array($param, $validParams)) {
-            ResponseHandler::jsonResponseNotFound("Invalid query parameter: $param");
-            exit;
+            returnError("Invalid query parameter: $param");
         }
     }
 
-    // Kiểm tra giá trị của productId (nếu có)
-    if (isset($params['productId']) && empty($params['productId'])) {
-        ResponseHandler::jsonResponseNotFound('Invalid productId value.');
-        exit;
-    }
-    if (isset($params['storeId']) && empty($params['storeId'])) {
-        ResponseHandler::jsonResponseNotFound('Invalid storeId value.');
-        exit;
-    }
-    if (isset($params['userId']) && empty($params['userId'])) {
-        ResponseHandler::jsonResponseNotFound('Invalid userId value.');
-        exit;
+    // Kiểm tra giá trị của mỗi tham số
+    foreach ($validParams as $vp) {
+        if (isset($params[$vp])) {
+            if (!is_numeric($params[$vp]) || (int)$params[$vp] <= 0) {
+                returnError("Invalid value for $vp.");
+            }
+        }
     }
 
     // Kiểm tra xem có ít nhất một tham số được cung cấp hay không
@@ -47,10 +41,15 @@ function validateQueryParams($params) {
     }
 
     if ($isAllNull) {
-        ResponseHandler::jsonResponseNotFound('Missing required parameters.');
-        exit;
+        returnError('Missing required parameters.');
     }
 }
+
+function returnError($message) {
+    echo json_encode(array('status' => 'error', 'message' => $message));
+    exit;
+}
+
 
 
  
@@ -61,8 +60,8 @@ $router->addRoute(HttpMethods::GET, '/train_php_api/coupons', function() use ($c
     $storeId = RequestHandler::getQueryParam('storeId');
 
     validateQueryParams($_GET);
-    
-    $couponController->filterCouponAnd($userId, $storeId, $productId);
+
+    $couponController->getCouponsByUserIdProductIdStoreId($userId, $productId, $storeId);
 });
 
 // Dispatch the current request to the corresponding route

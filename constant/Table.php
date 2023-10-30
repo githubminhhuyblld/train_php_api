@@ -3,5 +3,6 @@
 class TableNames
 {
     const STORE = 'coupon';
-    const STORE_COUPON = 'store_coupon';
+    const PRODUCT = 'product';
+    const USER  = "User";
 }
