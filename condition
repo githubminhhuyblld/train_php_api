@@ -1,0 +1,45 @@
+Đã ACTIVE và không bị xóa
+
+Thời gian hiện tại >= start_date
+Thời gian hiện tại < start_date
+Không có start_date
+Thời gian hiện tại > end_date
+Thời gian hiện tại <= end_date
+Không có end_date
+
+
+start_date:"20/11/2023", ngày hiện tại "19/11/2023" ,end_date "25/11/2023"
+1 start_date > ngày hiện tại <= end_date
+=> No
+
+start_date:"20/11/2023", ngày hiện tại "19/11/2023" ,end_date "18/11/2023"
+2 start_date <= ngày hiện tại > end_date
+=> Yes
+
+start_date:"20/11/2023", ngày hiện tại "19/11/2023" ,end_date: null
+3 start_date > ngày hiện tại và không có end_date
+=> No
+
+start_date:"18/11/2023", ngày hiện tại "19/11/2023" ,end_date "20/11/2023"
+4 start_date <= ngày hiện tại <= end_date
+=> Yes
+
+start_date:"18/11/2023", ngày hiện tại "19/11/2023" ,end_date "18/11/2023"
+5 start_date <= ngày hiện tại > end_date
+=> No
+
+start_date:"18/11/2023", ngày hiện tại "19/11/2023" ,end_date null
+6 start_date <= ngày hiện tại và không có end_date
+=> Yes
+
+start_date:null, ngày hiện tại "19/11/2023" ,end_date "19/11/2023"
+7 Không có start_date và ngày hiện tại <= end_date
+=> Yes(*)
+
+start_date:null, ngày hiện tại "20/11/2023" ,end_date "19/11/2023"
+8 Không có start_date và ngày hiện tại > end_date
+=> No
+
+start_date:null, end_date :null
+9 Không có start_date và không có end_date
+=> No(*)
